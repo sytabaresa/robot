@@ -4,8 +4,6 @@ on:
   push:
     branches:
     - main
-    paths:
-    - 'packages/**/**'
 
 jobs:
   changelog:
@@ -14,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
     steps:
       - uses: actions/checkout@v2
         env:
@@ -29,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build --workspaces
+        run: npm run build --workspaces --if-present
       
       - name: Create Release Pull Request or Publish to npm
         id: changesets

@@ -28,7 +28,7 @@ function fnType(fn) {
 
 let reduceType = {};
 export let reduce = fnType.bind(reduceType);
-export let action = fn => reduce((ctx, ev) => !!~fn(ctx, ev) && ctx);
+export let action = fn => reduce((ctx, ev) => (fn(ctx, ev), ctx));
 
 let guardType = {};
 export let guard = fnType.bind(guardType);
@@ -89,8 +89,15 @@ let invokeFnType = {
         machine: valueEnumerable(rn),
         transitions: valueEnumerable(this.transitions)
       }).enter(machine2, service, event)
-    rn.then(data => service.send({ type: 'done', data }))
-      .catch(error => service.send({ type: 'error', error }));
+    rn
+      .then(data => { 
+        if (machine2 === service.machine) 
+          return service.send({ type: 'done', data });
+      })
+      .catch(error => { 
+        if (machine2 === service.machine) 
+          return service.send({ type: 'error', error });
+      });
     return machine2;
   }
 };
@@ -162,8 +169,9 @@ function transitionTo(service, machine, fromEvent, candidates) {
       if (d._onEnter) d._onEnter(machine, to, service.context, context, fromEvent);
       let state = newMachine.state.value;
       service.machine = newMachine;
+      let ret = state.enter(newMachine, service, fromEvent);
       service.onChange(service);
-      return state.enter(newMachine, service, fromEvent);
+      return ret;
     }
   }
 }

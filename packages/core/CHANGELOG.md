@@ -1,5 +1,60 @@
 # robot3
 
+## 1.3.0
+
+### Minor Changes
+
+- bcc2995: Improve the type definition for state and invoke functions
+
+## 1.2.0
+
+### Minor Changes
+
+- 0cf6366: '/logging' is now exported, so you can import it in your dev environment to log state changes.
+
+  ```ts
+  import 'robot3/logging';
+
+  import {...} from 'robot3';
+  ```
+
+### Patch Changes
+
+- 950b6fa: Fix syntax error in state function type definition that caused TypeScript compilation failures. The previous change had a missing space in a conditional type expression, breaking type inference for state transitions.
+
+## 1.1.1
+
+### Patch Changes
+
+- 1d6179a: Fixes types for the state() function.
+
+## 1.1.0
+
+### Minor Changes
+
+- 4f6fb69: Autocomplete for service.send()
+
+  This makes it so that the event name in `service.send(event)` is inferred from the transitions used to create the machine.
+
+## 1.0.2
+
+### Patch Changes
+
+- 9fbdbcb: Set the most deeply nested current service to current
+- 0409089: Documentation for advanced use of 'invoke()'
+
+## 1.0.1
+
+### Patch Changes
+
+- cc17481: Add debug to package exports
+
+## 1.0.0
+
+### Major Changes
+
+- 52742ab: Call onChange callbacks for immediate states too
+
 ## 0.4.1
 
 ### Patch Changes

@@ -1,5 +1,44 @@
 # react-robot
 
+## 1.2.1
+
+### Patch Changes
+
+- c2adf9f: Fix send function type to properly derive transitions from machine type
+
+## 1.2.0
+
+### Minor Changes
+
+- efbddbe: Typed event for send() in hooks
+
+  This adds the same typed event support for `send()` from hooks, for ex in React:
+
+  ```ts
+  const [state, send] = useMachine(machine);
+
+  send("this-is-typed");
+  ```
+
+### Patch Changes
+
+- Updated dependencies [efbddbe]
+  - robot-hooks@1.1.0
+
+## 1.1.0
+
+### Minor Changes
+
+- 910dfaa: Support React 19
+
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [52742ab]
+  - robot3@1.0.0
+  - robot-hooks@1.0.0
+
 ## 0.3.0
 
 ### Minor Changes
