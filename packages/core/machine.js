@@ -196,7 +196,7 @@ let service = {
   }
 };
 
-export function interpret(machine, onChange, initialContext, event) {
+export function interpret(machine, onChange = () => { }, initialContext, event) {
   let s = Object.create(service, {
     machine: valueEnumerableWritable(machine),
     context: valueEnumerableWritable(machine.context(initialContext, event)),
