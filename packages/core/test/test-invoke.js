@@ -251,20 +251,69 @@ QUnit.module('Invoke', hooks => {
       nestedOne: state(
         transition('next', 'nestedTwo')
       ),
-      nestedTwo: state()
+      nestedTwo: state(
+        transition('next', 'nestedThree')
+      ),
+      nestedThree: state()
     });
     const parent = createMachine({
       one: invoke(child,
-        transition('done', 'two')
+        transition('done', 'two'),
+        transition('change', 'two')
       ),
       two: state()
     });
 
-    let service = interpret(parent, () => {});
+    let service = interpret(parent, () => { });
     assert.ok(service.child, 'there is a child service');
-
+    service.child.send('next');
+    assert.ok(service.child, 'there is a child service');
     service.child.send('next');
     assert.notOk(service.child, 'No longer a child');
+
+    let service2 = interpret(parent, () => { });
+    assert.ok(service2.child, 'there is a child service');
+
+    service2.child.send('next');
+    assert.ok(service2.child, 'there is still a child service in inner state');
+    assert.equal(service2.child.machine.current, 'nestedTwo');
+
+    service2.send('change');
+    assert.notOk(service2.child, 'No longer a child');
+  });
+
+  QUnit.test('Self-transition on an invoked state creates a fresh child machine', assert => {
+    const child = createMachine({
+      nestedOne: state(
+        transition('next', 'nestedTwo')
+      ),
+      nestedTwo: state(
+        transition('next', 'nestedThree')
+      ),
+      nestedThree: state()
+    });
+    const parent = createMachine({
+      one: invoke(child,
+        transition('done', 'two'),
+        transition('restart', 'one')
+      ),
+      two: state()
+    });
+
+    let service = interpret(parent, () => { });
+    assert.ok(service.child, 'there is a child service');
+    assert.equal(service.child.machine.current, 'nestedOne');
+
+    service.child.send('next');
+    assert.equal(service.child.machine.current, 'nestedTwo');
+
+    let firstChild = service.child;
+
+    service.send('restart');
+
+    assert.ok(service.child, 'child service exists after self-transition');
+    assert.notEqual(service.child, firstChild, 'new child service instance created');
+    assert.equal(service.child.machine.current, 'nestedOne', 'child re-initialized to initial state');
   });
 
   QUnit.test('Multi level nested machines resolve in correct order', async assert => {

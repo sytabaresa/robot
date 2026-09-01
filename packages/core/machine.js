@@ -167,6 +167,7 @@ function transitionTo(service, machine, fromEvent, candidates) {
       });
 
       if (d._onEnter) d._onEnter(machine, to, service.context, context, fromEvent);
+      delete service.child;
       let state = newMachine.state.value;
       service.machine = newMachine;
       let ret = state.enter(newMachine, service, fromEvent);
