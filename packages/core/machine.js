@@ -90,11 +90,11 @@ let invokeFnType = {
         transitions: valueEnumerable(this.transitions)
       }).enter(machine2, service, event);
     invokedResult
-      .then(data => { 
+      .then(data => {
         if (machine2 === service.machine) 
           return service.send({ type: 'done', data });
       })
-      .catch(error => { 
+      .catch(error => {
         if (machine2 === service.machine) 
           return service.send({ type: 'error', error });
       });
@@ -167,10 +167,15 @@ function transitionTo(service, machine, fromEvent, candidates) {
       });
 
       if (d._onEnter) d._onEnter(machine, to, service.context, context, fromEvent);
-      delete service.child;
+
+      let isSelfTransition = machine.current === to;
+      if (!isSelfTransition) {
+        delete service.child;
+      }
+
       let state = newMachine.state.value;
       service.machine = newMachine;
-      let ret = state.enter(newMachine, service, fromEvent);
+      let ret = isSelfTransition ? newMachine : state.enter(newMachine, service, fromEvent);
       service.onChange(service);
       return ret;
     }
@@ -181,7 +186,7 @@ function send(service, event) {
   let eventName = event.type || event;
   let { machine } = service;
   let { value: state, name: currentStateName } = machine.state;
-  
+
   if(state.transitions.has(eventName)) {
     return transitionTo(service, machine, event, state.transitions.get(eventName)) || machine;
   } else {
