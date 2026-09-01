@@ -83,13 +83,13 @@ export function state(...args) {
 
 let invokeFnType = {
   enter(machine2, service, event) {
-    let rn = this.fn.call(service, service.context, event)
-    if(machine.isPrototypeOf(rn))
+    let invokedResult = this.fn.call(service, service.context, event);
+    if (machine.isPrototypeOf(invokedResult))
       return create(invokeMachineType, {
-        machine: valueEnumerable(rn),
+        machine: valueEnumerable(invokedResult),
         transitions: valueEnumerable(this.transitions)
-      }).enter(machine2, service, event)
-    rn
+      }).enter(machine2, service, event);
+    invokedResult
       .then(data => { 
         if (machine2 === service.machine) 
           return service.send({ type: 'done', data });
@@ -113,7 +113,7 @@ let invokeMachineType = {
     if(service.child.machine.state.value.final) {
       let data = service.child.context;
       delete service.child;
-      return transitionTo(service, machine, { type: 'done', data }, this.transitions.get('done'));
+      return send(service, { type: 'done', data }) || machine;
     }
     return machine;
   }
