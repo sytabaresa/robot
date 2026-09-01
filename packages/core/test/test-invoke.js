@@ -12,9 +12,9 @@ QUnit.module('Invoke', hooks => {
         )
       ),
       three: state()
-    }, () => ({age: 0}));
+    }, () => ({ age: 0 }));
 
-    let service = interpret(machine, () => {});
+    let service = interpret(machine, () => { });
     service.send('click');
     await Promise.resolve();
     assert.equal(service.context.age, 13, 'Invoked');
@@ -30,9 +30,9 @@ QUnit.module('Invoke', hooks => {
         )
       ),
       three: state()
-    }, () => ({age: 0}));
+    }, () => ({ age: 0 }));
 
-    let service = interpret(machine, () => {});
+    let service = interpret(machine, () => { });
     service.send('click');
     await Promise.resolve(); await Promise.resolve();
     assert.equal(service.context.error.message, 'oh no', 'Got the right error');
@@ -41,12 +41,12 @@ QUnit.module('Invoke', hooks => {
   QUnit.test('The initial state can be an invoke', async assert => {
     let machine = createMachine({
       one: invoke(() => Promise.resolve(2),
-        transition('done', 'two', reduce((ctx, ev) => ({...ctx, age: ev.data})))
+        transition('done', 'two', reduce((ctx, ev) => ({ ...ctx, age: ev.data })))
       ),
       two: state()
     }, () => ({ age: 0 }));
 
-    let service = interpret(machine, () => {});
+    let service = interpret(machine, () => { });
     await Promise.resolve();
     assert.equal(service.context.age, 2, 'Invoked immediately');
     assert.equal(service.machine.current, 'two', 'in the new state');
@@ -96,6 +96,67 @@ QUnit.module('Invoke', hooks => {
     assert.equal(service.machine.current, 'three', 'now in the correct state');
   });
 
+  QUnit.test('Promise cancellation discards rejected promise result when state changes', async assert => {
+    const waitFail = ms => () => new Promise((_, reject) => setTimeout(() => reject('Sorry but you can\'t do that'), ms));
+
+    const machine = createMachine({
+      start: invoke(waitFail(10),
+        transition('cancel', 'cancelled'),
+        transition('done', 'loaded',
+          reduce((ctx, ev) => ({ ...ctx, todo: ev.data }))
+        ),
+        transition('error', 'errored')
+      ),
+      cancelled: state(
+        transition('done', 'error_state'),
+        transition('error', 'error_state')
+      ),
+      loaded: state(),
+      errored: state(),
+      error_state: state()
+    }, () => ({ todo: null }));
+
+    let service = interpret(machine, () => { });
+    assert.equal(service.machine.current, 'start', 'starts in invoked state');
+
+    service.send('cancel');
+    assert.equal(service.machine.current, 'cancelled', 'transitioned to cancelled state');
+
+    await waitFail(20)().catch(() => { });
+
+    assert.equal(service.machine.current, 'cancelled', 'remains in cancelled state after promise rejected');
+    assert.equal(service.context.todo, null, 'context changes were discarded');
+  });
+
+  QUnit.test('Promise cancellation discards resolved promise result when state changes', async assert => {
+    const waitSuccess = ms => () => new Promise(resolve => setTimeout(() => resolve('data'), ms));
+
+    const machine = createMachine({
+      start: invoke(waitSuccess(10),
+        transition('cancel', 'cancelled'),
+        transition('done', 'loaded',
+          reduce((ctx, ev) => ({ ...ctx, todo: ev.data }))
+        )
+      ),
+      cancelled: state(
+        transition('done', 'error_state')
+      ),
+      loaded: state(),
+      error_state: state()
+    }, () => ({ todo: null }));
+
+    let service = interpret(machine, () => { });
+    assert.equal(service.machine.current, 'start', 'starts in invoked state');
+
+    service.send('cancel');
+    assert.equal(service.machine.current, 'cancelled', 'transitioned to cancelled state');
+
+    await waitSuccess(20)();
+
+    assert.equal(service.machine.current, 'cancelled', 'remains in cancelled state after promise resolved');
+    assert.equal(service.context.todo, null, 'context changes were discarded');
+  });
+
   QUnit.module('Machine');
 
   QUnit.test('Can invoke a child machine', async assert => {
@@ -117,7 +178,7 @@ QUnit.module('Invoke', hooks => {
     });
     let c = 0;
     let service = interpret(two, thisService => {
-      switch(c) {
+      switch (c) {
         case 0:
           assert.equal(service.machine.current, 'two');
           break;
@@ -162,14 +223,14 @@ QUnit.module('Invoke', hooks => {
       three: state(
         transition('go', 'four')
       ),
-      four:  invoke(() => dynamicMachines[1],
+      four: invoke(() => dynamicMachines[1],
         transition('done', 'five')
       ),
       five: final()
     });
     let c = 0;
     let service = interpret(root, thisService => {
-      switch(c) {
+      switch (c) {
         case 0:
           assert.equal(service.machine.current, 'two');
           break;
@@ -238,7 +299,7 @@ QUnit.module('Invoke', hooks => {
       () => ({ stuff: [] })
     );
 
-    let service = interpret(machine, () => {});
+    let service = interpret(machine, () => { });
     service.send('next');
 
     await wait(50)();
@@ -408,7 +469,7 @@ QUnit.module('Invoke', hooks => {
 
   QUnit.test('Invoking a machine that immediately finishes', async assert => {
     assert.expect(3);
-    const expectations = [ 'nestedTwo', 'three', 'three' ];
+    const expectations = ['nestedTwo', 'three', 'three'];
 
     const child = createMachine({
       nestedOne: state(
