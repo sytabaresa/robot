@@ -386,6 +386,30 @@ QUnit.module('Invoke', hooks => {
     assert.equal(service.context.restarts, 1, 'parent context updated on self-transition');
   });
 
+  QUnit.test('Child machine resets when ending at end state and parent transitions to same state', assert => {
+    const child = createMachine({
+      nestedOne: state(
+        transition('next', 'nestedTwo')
+      ),
+      nestedTwo: state()
+    });
+
+    const parent = createMachine({
+      one: invoke(child,
+        transition('done', 'one')
+      )
+    });
+
+    let service = interpret(parent, () => { });
+    assert.ok(service.child, 'there is a child service initially');
+    assert.equal(service.child.machine.current, 'nestedOne', 'child is in initial state');
+
+    service.child.send('next');
+
+    assert.ok(service.child, 'child service exists and was reset after parent transitioned to same state on done');
+    assert.equal(service.child.machine.current, 'nestedOne', 'child machine reset to initial state');
+  });
+
   QUnit.test('Multi level nested machines resolve in correct order', async assert => {
     assert.expect(18);
 

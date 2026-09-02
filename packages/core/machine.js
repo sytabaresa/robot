@@ -165,17 +165,14 @@ function transitionTo(service, machine, fromEvent, candidates) {
         current: valueEnumerable(to),
         original: { value: original }
       });
-
       if (d._onEnter) d._onEnter(machine, to, service.context, context, fromEvent);
-
       let isSelfTransition = machine.current === to;
-      if (!isSelfTransition) {
-        delete service.child;
-      }
+      if (!isSelfTransition) delete service.child;
 
       let state = newMachine.state.value;
       service.machine = newMachine;
-      let ret = isSelfTransition ? newMachine : state.enter(newMachine, service, fromEvent);
+      let ret = (isSelfTransition && service.child) ?
+        newMachine : state.enter(newMachine, service, fromEvent);
       service.onChange(service);
       return ret;
     }
